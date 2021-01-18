@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import Brute from 'express-brute';
+import BruteRedis from 'express-brute-redis';
 
 import PlanetController from './app/controllers/PlanetController';
 import SearchPlanetByIdController from './app/controllers/SearchPlanetByIdController';
@@ -7,13 +9,24 @@ import SearchPlanetByNameController from './app/controllers/SearchPlanetByNameCo
 import ValidatePlanetStore from './app/validators/PlanetStore';
 import ValidatePlanetUpdate from './app/validators/PlanetUpdate';
 
+const bruteStore = new BruteRedis({
+    host: process.env.REDIS_HOST,
+    port: process.env.REDIS_PORT,
+});
+
+const bruteForce = new Brute(bruteStore);
+
 const routes = new Router();
 
 routes.post('/planet', ValidatePlanetStore, PlanetController.store);
 
-routes.get('/planet', PlanetController.index);
-routes.get('/planet/:id', SearchPlanetByIdController.index);
-routes.get('/planetName', SearchPlanetByNameController.index);
+routes.get('/planet', bruteForce.prevent, PlanetController.index);
+routes.get('/planet/:id', bruteForce.prevent, SearchPlanetByIdController.index);
+routes.get(
+    '/planetName',
+    bruteForce.prevent,
+    SearchPlanetByNameController.index
+);
 
 routes.put('/planet/:id', ValidatePlanetUpdate, PlanetController.update);
 

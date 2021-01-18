@@ -1,84 +1,90 @@
 import Planet from '../schemas/Planet';
 import api from '../../services/api';
 
+import Cache from '../../lib/Cache';
+
 class PlanetController {
-  async store(req, res) {
-    const planetExists = await Planet.findOne({
-      name: req.body.name,
-    });
+    async store(req, res) {
+        const planetExists = await Planet.findOne({
+            name: req.body.name,
+        });
 
-    if (planetExists) {
-      return res
-        .status(400)
-        .json({ error: 'Planet already exist at the galaxy!' });
+        if (planetExists) {
+            return res
+                .status(400)
+                .json({ error: 'Planet already exist at the galaxy!' });
+        }
+
+        const isStarWarPlanet = await api.get(`planets?search=${req.body.name}`);
+
+        const { count } = isStarWarPlanet.data;
+
+        if (count === 0) {
+            return res
+                .status(400)
+                .json('The Planet does not exist in StarWars Universe!');
+        }
+
+        const response = await api.get(`planets?search=${req.body.name}`);
+        const { films } = response.data.results[0];
+
+        const appearances = films.length;
+
+        const { name, climate, terrain } = await Planet.create(req.body);
+
+        await Planet.findOneAndUpdate({
+            name,
+        }, {
+            appearances,
+        });
+
+        return res.json({
+            name,
+            climate,
+            terrain,
+            appearances,
+        });
     }
 
-    const isStarWarPlanet = await api.get(`planets?search=${req.body.name}`);
+    async index(req, res) {
+        const cached = await Cache.get('planet');
 
-    const { count } = isStarWarPlanet.data;
+        if (cached) {
+            return res.json(cached);
+        }
+        const planets = await Planet.find().sort({ createdAt: -1 });
 
-    if (count === 0) {
-      return res
-        .status(400)
-        .json('The Planet does not exist in StarWars Universe!');
+        return res.json(planets);
     }
 
-    const response = await api.get(`planets?search=${req.body.name}`);
-    const { films } = response.data.results[0];
+    async update(req, res) {
+        const planet_id = await Planet.findById(req.params.id);
 
-    const appearances = films.length;
+        if (!planet_id) {
+            return res.status(400).json('The Planet does not exist in MongoDB!');
+        }
 
-    const { name, climate, terrain } = await Planet.create(req.body);
+        await Planet.findOneAndUpdate(req.params.id, {
+            climate: req.body.climate,
+            terrain: req.body.terrain,
+        });
 
-    await Planet.findOneAndUpdate(
-      {
-        name,
-      },
-      {
-        appearances,
-      }
-    );
+        const planet = await Planet.findById(req.params.id);
 
-    return res.json({
-      name,
-      climate,
-      terrain,
-      appearances,
-    });
-  }
-
-  async index(req, res) {
-    const planets = await Planet.find().sort({ createdAt: -1 });
-
-    return res.json(planets);
-  }
-
-  async update(req, res) {
-    const planet_id = await Planet.findById(req.params.id);
-
-    if (!planet_id) {
-      return res.status(400).json('The Planet does not exist in MongoDB!');
+        return res.json(planet);
     }
 
-    await Planet.findOneAndUpdate(req.params.id, {
-      climate: req.body.climate,
-      terrain: req.body.terrain,
-    });
+    async delete(req, res) {
+        const planet_id = await Planet.findByIdAndRemove(req.params.id);
 
-    const planet = await Planet.findById(req.params.id);
+        if (!planet_id) {
+            return res.status(400).json('The Planet does not exist in MongoDB!');
+        }
 
-    return res.json(planet);
-  }
+        await Cache.invalidatePrefix('planet');
 
-  async delete(req, res) {
-    const planet_id = await Planet.findByIdAndRemove(req.params.id);
-
-    if (!planet_id) {
-      return res.status(400).json('The Planet does not exist in MongoDB!');
+        return res.json('Planet was destroyed by stormtroopers!');
     }
-
-    return res.json('Planet was destroyed by stormtroopers!');
-  }
 }
 
 export default new PlanetController();
