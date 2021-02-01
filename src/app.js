@@ -25,10 +25,6 @@ class App {
     middlewares() {
         this.server.use(helmet());
         this.server.use(express.json());
-        this.server.use(
-            '/files',
-            express.static(path.resolve(__dirname, '..', 'tmp', 'uploads'))
-        );
 
         if (process.env.NODE_ENV !== 'development') {
             this.server.use(
