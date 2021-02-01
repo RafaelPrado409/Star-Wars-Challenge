@@ -17,10 +17,10 @@
         "express-rate-limit": "^5.2.3",
         "helmet": "^4.3.1",
         "mongoose": "^5.11.12",
-        "youch": "^2.1.1",
         "yup": "^0.32.8"
     },
     "devDependencies": {
+      "youch": "^2.1.1",
         "factory-girl": "^5.0.4",
         "supertest": "^6.1.1",
         "sqlite3": "^5.0.1",
