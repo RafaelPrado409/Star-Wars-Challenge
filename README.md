@@ -1,4 +1,4 @@
-# **Star Wars Challenge**
+# **Star-Wars-Challenge**
 
 ![Javascript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
 ![Node](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)
@@ -143,4 +143,4 @@ para iniciar os testes
 [![Rafael Prado]( https://img.shields.io/github/followers/RafaelPrado409?label=follow&style=social)](https://github.com/RafaelPrado409)
 
 
-[⬆ Back to top](#StarWarsChallenge)<br>
+[⬆ Back to top](#Star-Wars-Challenge)<br>
